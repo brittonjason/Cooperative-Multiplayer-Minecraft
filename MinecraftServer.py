@@ -11,30 +11,30 @@ from mcpi.minecraft import Minecraft
 player_count = 0
 
 mc = Minecraft.create()
-mc.postToChat("Connected...")
+mc.postToChat("Connected...") # Posts to minecraft chat
 
 class SendPlayerPos(resource.Resource):
-    """
-    Example resource which supports GET method. It uses asyncio.sleep to
-    simulate a long-running operation, and thus forces the protocol to send
-    empty ACK first.
-    """
 
     def __init__(self):
         super(SendPlayerPos, self).__init__()
 
+    # function for GET request
     async def render_get(self, request):
 		
         x, y, z = mc.player.getPos()
 		
+	# payload sends currnet position of player
         payload_string = "X: " + str(x) + "\nY: " + str(y) + "\nZ: " + str(z)
 		
         payload = payload_string.encode('ascii')
         return aiocoap.Message(payload=payload)
-		
+
+    # function for PUT request
     async def render_put(self, request):
+	# request.payload is the the position to place the block
         print("\n\n\n" + str(request.payload) + "\n\n\n")
         self.content = request.payload
+	# payload is response to PUT request
         payload = "something arbitrary".encode('ascii')
         return aiocoap.Message(payload=payload)
 		
@@ -45,7 +45,8 @@ logging.getLogger("coap-server").setLevel(logging.DEBUG)
 def main():
     # Resource tree creation
     root = resource.Site()
-
+	
+    # adds resource at localhost/minecraft/position
     root.add_resource(('minecraft', 'position'), SendPlayerPos())
 
     asyncio.Task(aiocoap.Context.create_server_context(root))
