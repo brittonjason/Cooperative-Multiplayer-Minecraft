@@ -11,7 +11,7 @@ from mcpi.minecraft import Minecraft
 player_count = 0
 
 mc = Minecraft.create()
-mc.postToChat("Connected...") # Sends message to Minecraft Game
+mc.postToChat("Connected...")
 
 class SendPlayerPos(resource.Resource):
     """
@@ -23,18 +23,15 @@ class SendPlayerPos(resource.Resource):
     def __init__(self):
         super(SendPlayerPos, self).__init__()
 
-	# Function for GET
     async def render_get(self, request):
 		
         x, y, z = mc.player.getPos()
 		
-		# Puts player position in payload
         payload_string = "X: " + str(x) + "\nY: " + str(y) + "\nZ: " + str(z)
 		
         payload = payload_string.encode('ascii')
         return aiocoap.Message(payload=payload)
 		
-	# Function for PUT
     async def render_put(self, request):
         print("\n\n\n" + str(request.payload) + "\n\n\n")
         self.content = request.payload
@@ -46,9 +43,9 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger("coap-server").setLevel(logging.DEBUG)
 
 def main():
+    # Resource tree creation
     root = resource.Site()
 
-	# Creates resource at coap://localhost/minecraft/position
     root.add_resource(('minecraft', 'position'), SendPlayerPos())
 
     asyncio.Task(aiocoap.Context.create_server_context(root))
