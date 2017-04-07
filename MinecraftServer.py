@@ -1,11 +1,9 @@
-import datetime
 import logging
-
+import pickle
+import json
 import asyncio
-
 import aiocoap.resource as resource
 import aiocoap
-
 from mcpi.minecraft import Minecraft
 
 player_turn = 1
@@ -34,17 +32,18 @@ class SendPlayerPos(resource.Resource):
 
     # function for PUT request
     async def render_put(self, request):
-        global player_turn
-        # request.payload is the the position to place the block
+        global player_turn, x, y, z
         print("\n\n\n" + str(request.payload) + "\n\n\n")
-        self.content = request.payload
+        # self.content = request.payload
 
         payload = server_unpickle(request.payload)
 
+        x = payload[1]
+        y = payload[2]
+        z = payload[3]
+
         # Place block
-
-
-        # Update x y z to where the block was placed
+        mc.setBlock(x, y, z, payload[4])
 
         # Update turn to next player
         if player_turn == 3:
@@ -52,13 +51,32 @@ class SendPlayerPos(resource.Resource):
         else:
             player_turn += 1
 
+        # Check if row if finished
+        if x == startx + 10:
+            y += 1
+            x -= 10
+
+        # Check if wall is finished
+        if x == startx + 10 and y == starty + 1:
+            player_turn = 0
+
         # payload is response to PUT request
-        payload = "something arbitrary".encode('ascii')
         return aiocoap.Message(payload=payload)
 
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("coap-server").setLevel(logging.DEBUG)
+
+
+def server_pickle(x, y, z, token):
+    data = {"x": x, "y": y, "z": z, "token": token}
+    return pickle.dumps(json.dumps(data))
+
+
+def server_unpickle(pickled_data):
+    unpickled_data = json.loads(pickle.loads(pickled_data))
+    return [unpickled_data["player_id"], unpickled_data["x"], unpickled_data["y"], unpickled_data["z"],
+            unpickled_data["block_type"]]
 
 
 def main():
