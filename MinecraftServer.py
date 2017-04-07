@@ -35,8 +35,9 @@ class SendPlayerPos(resource.Resource):
     # function for PUT request
     async def render_put(self, request):
         global player_turn, x, y, z
+        print("\n\n\nTEST TEST")
         print("\n\n\n" + str(request.payload) + "\n\n\n")
-        # self.content = request.payload
+        self.content = request.payload
 
         payload = server_unpickle(request.payload)
 
@@ -53,14 +54,15 @@ class SendPlayerPos(resource.Resource):
         else:
             player_turn += 1
 
+        if x == startx + 10 and y == starty + 1:
+            player_turn = 0
+
         # Check if row if finished
         if x == startx + 10:
             y += 1
             x -= 10
 
-        # Check if wall is finished
-        if x == startx + 10 and y == starty + 1:
-            player_turn = 0
+        payload = b"Message retrieved!"
 
         # payload is response to PUT request
         return aiocoap.Message(payload=payload)
