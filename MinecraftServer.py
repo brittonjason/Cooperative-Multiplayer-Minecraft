@@ -12,7 +12,9 @@ mc = Minecraft.create()
 mc.postToChat("Connected...")  # Posts to minecraft chat
 
 startx, starty, startz = mc.player.getPos()
-x, y, z = 0
+x = startx
+y = starty
+z = startz
 
 
 class SendPlayerPos(resource.Resource):
