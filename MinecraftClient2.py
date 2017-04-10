@@ -19,7 +19,7 @@ unjson = ({})
 x = 0
 y = 0
 z = 0
-my_block_id = 2
+my_block_id = 86
 
 # Function for GET request
 async def getPlayerPos():
