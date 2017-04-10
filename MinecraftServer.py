@@ -5,8 +5,19 @@ import asyncio
 import aiocoap.resource as resource
 import aiocoap
 from mcpi.minecraft import Minecraft
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BOARD)
+
+GPIO.setup(37, GPIO.OUT) # player 1
+GPIO.setup(33, GPIO.OUT) # player 2
+GPIO.setup(31, GPIO.OUT) # player 3
 
 player_turn = 1
+
+GPIO.output(37, GPIO.HIGH)
+GPIO.output(33, GPIO.LOW)
+GPIO.output(31, GPIO.LOW)
 
 mc = Minecraft.create()
 mc.postToChat("Connected...")  # Posts to minecraft chat
@@ -53,6 +64,19 @@ class SendPlayerPos(resource.Resource):
             player_turn = 1
         else:
             player_turn += 1
+			
+		if player_turn == 1:
+			GPIO.output(37, GPIO.HIGH)
+			GPIO.output(33, GPIO.LOW)
+			GPIO.output(31, GPIO.LOW)
+		elif player_turn == 2:
+			GPIO.output(37, GPIO.LOW)
+			GPIO.output(33, GPIO.HIGH)
+			GPIO.output(31, GPIO.LOW)
+		elif player_turn == 3:
+			GPIO.output(37, GPIO.LOW)
+			GPIO.output(33, GPIO.LOW)
+			GPIO.output(31, GPIO.HIGH)
 
         if x == startx + 10 and y == starty + 1:
             player_turn = 0
@@ -84,16 +108,18 @@ def server_unpickle(pickled_data):
 
 
 def main():
-    # Resource tree creation
-    root = resource.Site()
+	try:
+		# Resource tree creation
+		root = resource.Site()
 
-    # adds resource at localhost/minecraft/position
-    root.add_resource(('minecraft', 'position'), SendPlayerPos())
+		# adds resource at localhost/minecraft/position
+		root.add_resource(('minecraft', 'position'), SendPlayerPos())
 
-    asyncio.Task(aiocoap.Context.create_server_context(root))
+		asyncio.Task(aiocoap.Context.create_server_context(root))
 
-    asyncio.get_event_loop().run_forever()
-
+		asyncio.get_event_loop().run_forever()
+	except:
+		GPIO.cleanup()
 
 if __name__ == "__main__":
     main()
